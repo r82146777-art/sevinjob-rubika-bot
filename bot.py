@@ -1,9 +1,9 @@
 """
 ربات ارسال خودکار محتوای تبلیغاتی سرویس خواب سوین چوب به کانال روبیکا
 
-حالت‌های اجرا:
-  python bot.py --once     → فقط یک پست ارسال می‌کند (مناسب GitHub Actions)
-  python bot.py            → حلقه مداوم (برای اجرای محلی روی سرور)
+حالت‌ها:
+  python bot.py --once     → یک پست (مناسب GitHub Actions)
+  python bot.py            → حلقه مداوم (اجرای محلی)
 """
 
 import sys
@@ -19,7 +19,7 @@ from config import (
     CHANNEL_USERNAME,
     CHANNEL_LINK,
     PHONE_NUMBER,
-    INSTAGRAM_HANDLE,
+    INSTAGRAM_URL,
     BRAND_NAME,
     SEND_IMAGE,
     TIMEZONE,
@@ -29,7 +29,7 @@ from image_generator import create_promo_image
 
 BASE_URL = f"https://botapi.rubika.ir/v3/{BOT_TOKEN}"
 TZ = ZoneInfo(TIMEZONE)
-POST_TIMES = [11, 20]  # ۱۱ صبح و ۸ شب به وقت ایران
+POST_TIMES = [11, 20]
 
 
 def api_call(method: str, data: dict = None) -> dict:
@@ -81,10 +81,11 @@ def send_promo_post():
     now_str = datetime.now(TZ).strftime('%Y-%m-%d %H:%M')
     print(f"[{now_str}] در حال آماده‌سازی پست تبلیغاتی سوین چوب...")
 
+    # لینک اینستاگرام کامل و قابل کلیک
     text = get_random_promo(
         phone=PHONE_NUMBER,
         channel=CHANNEL_USERNAME,
-        instagram=INSTAGRAM_HANDLE,
+        instagram=INSTAGRAM_URL,
         channel_link=CHANNEL_LINK,
     )
 
@@ -100,7 +101,7 @@ def send_promo_post():
             subtitle="تولید و فروش عمده و خرده",
             phone=PHONE_NUMBER,
             channel=CHANNEL_USERNAME,
-            instagram=INSTAGRAM_HANDLE,
+            instagram="sevin_home.ir",
             output_path=image_path,
         )
 
@@ -112,7 +113,7 @@ def send_promo_post():
             upload_url = upload_url or req.get("upload_url")
 
         if not upload_url:
-            print("[WARN] upload_url دریافت نشد → فقط متن ارسال می‌شود")
+            print("[WARN] upload_url دریافت نشد → فقط متن")
             send_message(CHANNEL_ID, text)
             return
 
@@ -156,7 +157,7 @@ def main():
     if once:
         print("حالت: ارسال یک‌بار (GitHub Actions)")
     else:
-        print("حالت: حلقه مداوم | زمان‌بندی ۱۱:۰۰ و ۲۰:۰۰")
+        print("حالت: حلقه مداوم | ۱۱:۰۰ و ۲۰:۰۰")
     print("=" * 55)
 
     me = api_call("getMe")
@@ -167,7 +168,6 @@ def main():
         print("[INFO] ارسال یک پست تمام شد.")
         return
 
-    # حالت محلی / سرور دائمی
     while True:
         wait = seconds_until_next_post()
         time.sleep(wait)
