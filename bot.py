@@ -1,8 +1,12 @@
 """
 ربات ارسال خودکار محتوای تبلیغاتی سرویس خواب سوین چوب به کانال روبیکا
-زمان‌بندی: هر روز ساعت ۱۱:۰۰ صبح و ۲۰:۰۰ شب (به وقت ایران)
+
+حالت‌های اجرا:
+  python bot.py --once     → فقط یک پست ارسال می‌کند (مناسب GitHub Actions)
+  python bot.py            → حلقه مداوم (برای اجرای محلی روی سرور)
 """
 
+import sys
 import time
 import requests
 from datetime import datetime, timedelta
@@ -16,7 +20,6 @@ from config import (
     CHANNEL_LINK,
     PHONE_NUMBER,
     INSTAGRAM_HANDLE,
-    INSTAGRAM_URL,
     BRAND_NAME,
     SEND_IMAGE,
     TIMEZONE,
@@ -26,9 +29,7 @@ from image_generator import create_promo_image
 
 BASE_URL = f"https://botapi.rubika.ir/v3/{BOT_TOKEN}"
 TZ = ZoneInfo(TIMEZONE)
-
-# ساعات ارسال روزانه (ساعت محلی ایران)
-POST_TIMES = [11, 20]  # ۱۱ صبح و ۸ شب
+POST_TIMES = [11, 20]  # ۱۱ صبح و ۸ شب به وقت ایران
 
 
 def api_call(method: str, data: dict = None) -> dict:
@@ -77,7 +78,8 @@ def send_file(chat_id: str, file_id: str, text: str = None) -> dict:
 
 
 def send_promo_post():
-    print(f"[{datetime.now(TZ).strftime('%Y-%m-%d %H:%M')}] در حال آماده‌سازی پست تبلیغاتی...")
+    now_str = datetime.now(TZ).strftime('%Y-%m-%d %H:%M')
+    print(f"[{now_str}] در حال آماده‌سازی پست تبلیغاتی سوین چوب...")
 
     text = get_random_promo(
         phone=PHONE_NUMBER,
@@ -132,7 +134,6 @@ def send_promo_post():
 
 
 def seconds_until_next_post() -> float:
-    """محاسبه ثانیه تا نزدیک‌ترین ساعت ارسال بعدی (۱۱ یا ۲۰)"""
     now = datetime.now(TZ)
     candidates = []
     for hour in POST_TIMES:
@@ -147,26 +148,34 @@ def seconds_until_next_post() -> float:
 
 
 def main():
+    once = "--once" in sys.argv
+
     print("=" * 55)
-    print(f"ربات تبلیغاتی {BRAND_NAME} راه‌اندازی شد")
+    print(f"ربات تبلیغاتی {BRAND_NAME}")
     print(f"کانال: {CHANNEL_USERNAME}")
-    print(f"زمان‌بندی: هر روز ساعت ۱۱:۰۰ و ۲۰:۰۰ (وقت ایران)")
+    if once:
+        print("حالت: ارسال یک‌بار (GitHub Actions)")
+    else:
+        print("حالت: حلقه مداوم | زمان‌بندی ۱۱:۰۰ و ۲۰:۰۰")
     print("=" * 55)
 
     me = api_call("getMe")
     print(f"[INFO] ربات: {me}")
 
-    # ارسال یک پست فوری برای تست (اختیاری - می‌توانید کامنت کنید)
-    # send_promo_post()
+    if once:
+        send_promo_post()
+        print("[INFO] ارسال یک پست تمام شد.")
+        return
 
+    # حالت محلی / سرور دائمی
     while True:
         wait = seconds_until_next_post()
         time.sleep(wait)
         try:
             send_promo_post()
         except Exception as e:
-            print(f"[ERROR] خطای غیرمنتظره در ارسال: {e}")
-            time.sleep(60)  # کمی صبر و ادامه
+            print(f"[ERROR] خطای غیرمنتظره: {e}")
+            time.sleep(60)
 
 
 if __name__ == "__main__":
