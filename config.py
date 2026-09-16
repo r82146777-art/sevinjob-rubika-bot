@@ -1,22 +1,32 @@
 # ============================================
-# تنظیمات ربات سوینجوب - سرویس خواب
-# این مقادیر را با اطلاعات واقعی خود جایگزین کنید
+# تنظیمات ربات سوین چوب / سوینجوب - سرویس خواب
+# مخزن خصوصی - توکن و اطلاعات حساس فقط اینجا
 # ============================================
 
 # توکن ربات از @BotFather روبیکا
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
+BOT_TOKEN = "CEEJGC0IKPPURSYAYHHFJDSPAHCYOGUGJRVSPBYQUBVZNFWHPJGBKOGGRGUAGMJV"
 
-# آیدی عددی کانال (مثال: b0QFtabc1I02214b529f1d60c9ce5b08)
-CHANNEL_ID = "YOUR_CHANNEL_ID_HERE"
+# آیدی عددی کانال
+CHANNEL_ID = "c0DsYPq08a34d779b937cc880fb90cfc"
 
-# آیدی کانال (مثال: @sevinjob یا sevinjob)
-CHANNEL_USERNAME = "@sevinjob"
+# آیدی کانال
+CHANNEL_USERNAME = "@sevinchoob"
 
-# شماره تلفن تماس (مثال: 09121234567)
-PHONE_NUMBER = "0912XXXXXXX"
+# لینک کانال (برای نمایش در متن)
+CHANNEL_LINK = "https://rubika.ir/sevinchoob"
 
-# فاصله زمانی ارسال پست‌ها (به ساعت)
-POST_INTERVAL_HOURS = 6
+# شماره تلفن صاحب شرکت
+PHONE_NUMBER = "09926827083"
 
-# آیا عکس هم همراه متن ارسال شود؟
+# لینک اینستاگرام شرکت سوین چوب / سوین هوم
+INSTAGRAM_URL = "https://www.instagram.com/sevin_home.ir"
+INSTAGRAM_HANDLE = "@sevin_home.ir"
+
+# نام برند
+BRAND_NAME = "سوین چوب"
+
+# آیا عکس همراه متن ارسال شود؟
 SEND_IMAGE = True
+
+# منطقه زمانی (ایران)
+TIMEZONE = "Asia/Tehran"
