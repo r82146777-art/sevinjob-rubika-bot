@@ -2,11 +2,31 @@ name: ارسال خودکار پست تبلیغاتی سوین چوب
 
 on:
   schedule:
-    # ۱۱:۰۰ صبح به وقت ایران = ۰۷:۳۰ UTC
+    # ===== ارسال اصلی =====
+    # ۱۱:۰۰ صبح ایران = ۰۷:۳۰ UTC
     - cron: '30 7 * * *'
-    # ۲۰:۰۰ شب به وقت ایران = ۱۶:۳۰ UTC
+    # ۲۰:۰۰ شب ایران = ۱۶:۳۰ UTC
     - cron: '30 16 * * *'
-  workflow_dispatch:  # امکان اجرای دستی از تب Actions
+
+    # ===== قلب تپنده (۳۰ دقیقه بعد) =====
+    # ۱۱:۳۰ صبح ایران = ۰۸:۰۰ UTC
+    - cron: '0 8 * * *'
+    # ۲۰:۳۰ شب ایران = ۱۷:۰۰ UTC
+    - cron: '0 17 * * *'
+
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'حالت اجرا'
+        required: false
+        default: 'once'
+        type: choice
+        options:
+          - once
+          - heartbeat
+
+permissions:
+  contents: write
 
 jobs:
   send-promo:
@@ -14,6 +34,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -25,8 +47,42 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Detect mode (اصلی یا قلب تپنده)
+        id: mode
+        run: |
+          HOUR=$(date -u +%H)
+          MINUTE=$(date -u +%M)
+          # اگر از workflow_dispatch آمده
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODE="${{ github.event.inputs.mode }}"
+            if [ -z "$MODE" ]; then MODE="once"; fi
+          else
+            # تشخیص خودکار بر اساس ساعت UTC
+            if [ "$HOUR" = "08" ] || [ "$HOUR" = "17" ]; then
+              MODE="heartbeat"
+            else
+              MODE="once"
+            fi
+          fi
+          echo "mode=$MODE" >> $GITHUB_OUTPUT
+          echo "Detected mode: $MODE (UTC $HOUR:$MINUTE)"
+
       - name: Send promotional post
-        run: python bot.py --once
+        run: |
+          if [ "${{ steps.mode.outputs.mode }}" = "heartbeat" ]; then
+            python bot.py --heartbeat
+          else
+            python bot.py --once
+          fi
         env:
-          # اگر بعداً خواستید از Secrets استفاده کنید، اینجا اضافه کنید
           PYTHONUNBUFFERED: '1'
+
+      - name: Commit last_success state (اگر تغییر کرده)
+        run: |
+          if [ -f last_success.txt ]; then
+            git config user.name "SevinChoob Bot"
+            git config user.email "bot@sevinchoob.local"
+            git add last_success.txt
+            git diff --staged --quiet || git commit -m "update last_success [skip ci]"
+            git push || true
+          fi
