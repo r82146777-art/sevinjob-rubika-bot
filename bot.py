@@ -2,9 +2,9 @@
 ربات ارسال خودکار محتوای تبلیغاتی سرویس خواب سوین چوب به کانال روبیکا
 
 حالت‌ها:
-  python bot.py --once       → ارسال عادی یک پست
-  python bot.py --heartbeat  → قلب تپنده: فقط اگر پست اخیر ارسال نشده باشد، ارسال می‌کند
-  python bot.py              → حلقه مداوم (اجرای محلی)
+  python bot.py --smart   → ارسال هوشمند (فقط اگر در بازه زمانی مجاز باشد و پست اخیر نرفته باشد)
+  python bot.py --once    → اجبار به ارسال یک پست (تست دستی)
+  python bot.py           → حلقه مداوم محلی
 """
 
 import sys
@@ -30,10 +30,17 @@ from image_generator import create_promo_image
 
 BASE_URL = f"https://botapi.rubika.ir/v3/{BOT_TOKEN}"
 TZ = ZoneInfo(TIMEZONE)
-POST_TIMES = [11, 20]
 LAST_SUCCESS_FILE = Path("last_success.txt")
-# اگر در ۴۵ دقیقه اخیر پست موفق داشته باشیم، قلب تپنده چیزی نمی‌فرستد
-HEARTBEAT_WINDOW_MINUTES = 45
+
+# اگر در این مدت (دقیقه) پست موفق داشته باشیم، دوباره نمی‌فرستیم
+COOLDOWN_MINUTES = 90
+
+# بازه‌های مجاز ارسال به وقت ایران (ساعت، دقیقه شروع) تا (ساعت، دقیقه پایان)
+# صبح: ۱۰:۴۵ تا ۱۱:۴۵ | شب: ۱۹:۴۵ تا ۲۰:۴۵
+ALLOWED_WINDOWS = [
+    ((10, 45), (11, 45)),
+    ((19, 45), (20, 45)),
+]
 
 
 def api_call(method: str, data: dict = None) -> dict:
@@ -82,37 +89,55 @@ def send_file(chat_id: str, file_id: str, text: str = None) -> dict:
 
 
 def mark_success():
-    """ثبت زمان موفقیت ارسال"""
     now = datetime.now(TZ).isoformat()
     LAST_SUCCESS_FILE.write_text(now, encoding="utf-8")
     print(f"[INFO] زمان موفقیت ثبت شد: {now}")
 
 
-def was_recently_successful() -> bool:
-    """آیا در پنجره زمانی اخیر پست موفق داشته‌ایم؟"""
+def minutes_since_last_success() -> float | None:
     if not LAST_SUCCESS_FILE.exists():
-        print("[HEARTBEAT] فایل last_success وجود ندارد → نیاز به ارسال")
-        return False
+        return None
     try:
         raw = LAST_SUCCESS_FILE.read_text(encoding="utf-8").strip()
         last = datetime.fromisoformat(raw)
         if last.tzinfo is None:
             last = last.replace(tzinfo=TZ)
-        now = datetime.now(TZ)
-        delta = (now - last).total_seconds() / 60
-        print(f"[HEARTBEAT] آخرین موفقیت: {last.strftime('%Y-%m-%d %H:%M')} ({delta:.0f} دقیقه پیش)")
-        if delta <= HEARTBEAT_WINDOW_MINUTES:
-            print("[HEARTBEAT] پست اخیر موفق بوده → نیازی به ارسال مجدد نیست")
-            return True
-        print("[HEARTBEAT] پست اخیر قدیمی است → ارسال انجام می‌شود")
-        return False
+        return (datetime.now(TZ) - last).total_seconds() / 60
     except Exception as e:
-        print(f"[HEARTBEAT] خطا در خواندن وضعیت: {e} → ارسال انجام می‌شود")
+        print(f"[WARN] خواندن last_success: {e}")
+        return None
+
+
+def in_allowed_window(now: datetime | None = None) -> bool:
+    now = now or datetime.now(TZ)
+    minutes = now.hour * 60 + now.minute
+    for (sh, sm), (eh, em) in ALLOWED_WINDOWS:
+        start = sh * 60 + sm
+        end = eh * 60 + em
+        if start <= minutes <= end:
+            return True
+    return False
+
+
+def should_send_smart() -> bool:
+    """آیا الان باید پست بفرستیم؟"""
+    now = datetime.now(TZ)
+    print(f"[SMART] ساعت ایران الان: {now.strftime('%Y-%m-%d %H:%M')}")
+
+    if not in_allowed_window(now):
+        print("[SMART] خارج از بازه مجاز ارسال → رد")
         return False
+
+    delta = minutes_since_last_success()
+    if delta is not None and delta < COOLDOWN_MINUTES:
+        print(f"[SMART] پست اخیر {delta:.0f} دقیقه پیش موفق بوده → نیازی به ارسال مجدد نیست")
+        return False
+
+    print("[SMART] شرایط برقرار است → ارسال انجام می‌شود")
+    return True
 
 
 def send_promo_post() -> bool:
-    """ارسال پست. در صورت موفقیت True برمی‌گرداند."""
     now_str = datetime.now(TZ).strftime('%Y-%m-%d %H:%M')
     print(f"[{now_str}] در حال آماده‌سازی پست تبلیغاتی سوین چوب...")
 
@@ -128,7 +153,7 @@ def send_promo_post() -> bool:
     if not SEND_IMAGE:
         result = send_message(CHANNEL_ID, text)
         print(f"[INFO] متن ارسال شد: {result}")
-        success = bool(result)
+        success = isinstance(result, dict) and result.get("status") == "OK"
     else:
         image_path = "temp_promo.jpg"
         try:
@@ -151,22 +176,22 @@ def send_promo_post() -> bool:
             if not upload_url:
                 print("[WARN] upload_url دریافت نشد → فقط متن")
                 result = send_message(CHANNEL_ID, text)
-                success = bool(result)
+                success = isinstance(result, dict) and result.get("status") == "OK"
             else:
                 file_id = upload_file(upload_url, image_path)
                 if file_id:
                     result = send_file(CHANNEL_ID, file_id, text)
                     print(f"[INFO] پست با عکس ارسال شد: {result}")
-                    success = bool(result)
+                    success = isinstance(result, dict) and result.get("status") == "OK"
                 else:
                     print("[WARN] آپلود عکس ناموفق → فقط متن")
                     result = send_message(CHANNEL_ID, text)
-                    success = bool(result)
+                    success = isinstance(result, dict) and result.get("status") == "OK"
 
         except Exception as e:
             print(f"[ERROR] خطا در پست: {e}")
             result = send_message(CHANNEL_ID, text)
-            success = bool(result)
+            success = isinstance(result, dict) and result.get("status") == "OK"
         finally:
             p = Path(image_path)
             if p.exists():
@@ -174,61 +199,47 @@ def send_promo_post() -> bool:
 
     if success:
         mark_success()
+    else:
+        print("[WARN] ارسال ناموفق بود، last_success به‌روز نشد")
     return success
 
 
-def seconds_until_next_post() -> float:
-    now = datetime.now(TZ)
-    candidates = []
-    for hour in POST_TIMES:
-        candidate = now.replace(hour=hour, minute=0, second=0, microsecond=0)
-        if candidate <= now:
-            candidate += timedelta(days=1)
-        candidates.append(candidate)
-    next_time = min(candidates)
-    delta = (next_time - now).total_seconds()
-    print(f"[INFO] پست بعدی در {next_time.strftime('%Y-%m-%d %H:%M')} (حدود {delta/3600:.1f} ساعت دیگر)")
-    return max(delta, 5)
-
-
 def main():
+    smart = "--smart" in sys.argv
     once = "--once" in sys.argv
-    heartbeat = "--heartbeat" in sys.argv
 
     print("=" * 55)
     print(f"ربات تبلیغاتی {BRAND_NAME}")
     print(f"کانال: {CHANNEL_USERNAME}")
-    if heartbeat:
-        print("حالت: قلب تپنده (بررسی و ارسال در صورت نیاز)")
+    if smart:
+        print("حالت: هوشمند (بازه زمانی + جلوگیری از تکرار)")
     elif once:
-        print("حالت: ارسال یک‌بار (اصلی)")
+        print("حالت: ارسال اجباری یک‌بار")
     else:
-        print("حالت: حلقه مداوم | ۱۱:۰۰ و ۲۰:۰۰")
+        print("حالت: حلقه مداوم محلی")
     print("=" * 55)
 
     me = api_call("getMe")
     print(f"[INFO] ربات: {me}")
 
-    if heartbeat:
-        if was_recently_successful():
-            print("[HEARTBEAT] همه چیز درست است. خروج.")
-            return
-        print("[HEARTBEAT] پست اخیر یافت نشد → در حال ارسال...")
-        send_promo_post()
+    if smart:
+        if should_send_smart():
+            send_promo_post()
+        else:
+            print("[SMART] این اجرا رد شد.")
         return
 
     if once:
         send_promo_post()
-        print("[INFO] ارسال یک پست تمام شد.")
         return
 
+    # حالت محلی
     while True:
-        wait = seconds_until_next_post()
-        time.sleep(wait)
-        try:
+        now = datetime.now(TZ)
+        if in_allowed_window(now) and should_send_smart():
             send_promo_post()
-        except Exception as e:
-            print(f"[ERROR] خطای غیرمنتظره: {e}")
+            time.sleep(600)
+        else:
             time.sleep(60)
 
 

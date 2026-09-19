@@ -2,28 +2,22 @@ name: ارسال خودکار پست تبلیغاتی سوین چوب
 
 on:
   schedule:
-    # ===== ارسال اصلی =====
-    # ۱۱:۰۰ صبح ایران = ۰۷:۳۰ UTC
-    - cron: '30 7 * * *'
-    # ۲۰:۰۰ شب ایران = ۱۶:۳۰ UTC
-    - cron: '30 16 * * *'
+    # ===== صبح (حدود ۱۱:۰۰ ایران = ۰۷:۳۰ UTC) =====
+    # چند تلاش پشت‌سرهم تا یکی‌شان نزدیک ساعت ۱۱ بخورد
+    - cron: '20 7 * * *'   # ۱۰:۵۰ ایران
+    - cron: '30 7 * * *'   # ۱۱:۰۰ ایران
+    - cron: '40 7 * * *'   # ۱۱:۱۰ ایران
+    - cron: '50 7 * * *'   # ۱۱:۲۰ ایران
+    - cron: '0 8 * * *'    # ۱۱:۳۰ ایران (قلب تپنده)
 
-    # ===== قلب تپنده (۳۰ دقیقه بعد) =====
-    # ۱۱:۳۰ صبح ایران = ۰۸:۰۰ UTC
-    - cron: '0 8 * * *'
-    # ۲۰:۳۰ شب ایران = ۱۷:۰۰ UTC
-    - cron: '0 17 * * *'
+    # ===== شب (حدود ۲۰:۰۰ ایران = ۱۶:۳۰ UTC) =====
+    - cron: '20 16 * * *'  # ۱۹:۵۰ ایران
+    - cron: '30 16 * * *'  # ۲۰:۰۰ ایران
+    - cron: '40 16 * * *'  # ۲۰:۱۰ ایران
+    - cron: '50 16 * * *'  # ۲۰:۲۰ ایران
+    - cron: '0 17 * * *'   # ۲۰:۳۰ ایران (قلب تپنده)
 
   workflow_dispatch:
-    inputs:
-      mode:
-        description: 'حالت اجرا'
-        required: false
-        default: 'once'
-        type: choice
-        options:
-          - once
-          - heartbeat
 
 permissions:
   contents: write
@@ -47,37 +41,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Detect mode (اصلی یا قلب تپنده)
-        id: mode
-        run: |
-          HOUR=$(date -u +%H)
-          MINUTE=$(date -u +%M)
-          # اگر از workflow_dispatch آمده
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            MODE="${{ github.event.inputs.mode }}"
-            if [ -z "$MODE" ]; then MODE="once"; fi
-          else
-            # تشخیص خودکار بر اساس ساعت UTC
-            if [ "$HOUR" = "08" ] || [ "$HOUR" = "17" ]; then
-              MODE="heartbeat"
-            else
-              MODE="once"
-            fi
-          fi
-          echo "mode=$MODE" >> $GITHUB_OUTPUT
-          echo "Detected mode: $MODE (UTC $HOUR:$MINUTE)"
-
-      - name: Send promotional post
-        run: |
-          if [ "${{ steps.mode.outputs.mode }}" = "heartbeat" ]; then
-            python bot.py --heartbeat
-          else
-            python bot.py --once
-          fi
+      - name: Send promotional post (smart)
+        run: python bot.py --smart
         env:
           PYTHONUNBUFFERED: '1'
 
-      - name: Commit last_success state (اگر تغییر کرده)
+      - name: Commit last_success state
         run: |
           if [ -f last_success.txt ]; then
             git config user.name "SevinChoob Bot"
