@@ -19,5 +19,12 @@
     "image": "products/teddy.jpg",
     "tagline": "سرویس خواب تدی مدل زیبا",
     "parts": "تخت خواب، پاتختی، میز آرایش، صندلی آرایش"
+  },
+  {
+    "id": "delnavaz",
+    "name": "دلنواز",
+    "image": "products/delnavaz.jpg",
+    "tagline": "سرویس خواب مدل دلنواز",
+    "parts": "تخت خواب، ۲ عدد پاتختی"
   }
 ]
