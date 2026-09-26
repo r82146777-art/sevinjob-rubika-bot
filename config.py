@@ -17,11 +17,13 @@ INSTAGRAM_URL = "https://www.instagram.com/sevin_home.ir?igsh=MWt0Yndha2JjaHR4dg
 
 BRAND_NAME = "سوین چوب"
 
-# پست‌های زمان‌بندی‌شده فقط متنی (بدون عکس)
-SEND_IMAGE = False
+# ارسال عکس محصول همراه متن
+SEND_PRODUCT_IMAGE = True
 
 TIMEZONE = "Asia/Tehran"
 
-# آیدی عددی ادمین‌هایی که می‌توانند عکس اضافه کنند (اختیاری - خالی = همه)
-# مثال: ADMIN_IDS = ["u0xxxxx"]
+# پایان دوره یک‌ماهه (اختیاری؛ خالی = بدون محدودیت)
+# برای یک ماه از امروز تقریباً تا ۲۰۲۶-۱۰-۲۶
+END_DATE = "2026-10-26"
+
 ADMIN_IDS = []
