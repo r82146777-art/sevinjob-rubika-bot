@@ -26,5 +26,12 @@
     "image": "products/delnavaz.jpg",
     "tagline": "سرویس خواب مدل دلنواز",
     "parts": "تخت خواب، ۲ عدد پاتختی"
+  },
+  {
+    "id": "west",
+    "name": "وست",
+    "image": "products/west.jpg",
+    "tagline": "سرویس خواب مدل وست",
+    "parts": "تخت خواب، ۲ عدد پاتختی، میز آرایش، صندلی آرایش"
   }
 ]
