@@ -4,8 +4,6 @@
 # ============================================
 
 import random
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
 OPENINGS = [
     "🛏️ طراحی و خلاقیت هنر ماست",
@@ -51,9 +49,9 @@ def build_product_promo(
     name = product.get("name", "")
     tagline = product.get("tagline", "طراحی و خلاقیت هنر ماست")
     parts = product.get("parts", "")
+    price = product.get("price")
 
     opening = random.choice(OPENINGS)
-    # گاهی از تگ‌لاین خود محصول استفاده کن
     if random.random() < 0.45:
         opening = f"✨ {tagline}"
 
@@ -62,20 +60,42 @@ def build_product_promo(
 
     parts_line = f"اجزاء شامل: {parts}" if parts else ""
 
-    text = f"""{opening}
+    # اگر قیمت ثبت شده باشد، با تأکید بر متغیر بودن نمایش داده می‌شود
+    if price:
+        price_block = (
+            f"💰 قیمت حدودی: {price}\n"
+            f"⚠️ قیمت‌ها متغیر است؛ برای قیمت روز تماس بگیرید."
+        )
+    else:
+        price_block = ""
 
-🛏️ سرویس خواب مدل {name}
+    sections = [
+        opening,
+        "",
+        f"🛏️ سرویس خواب مدل {name}",
+        "",
+        parts_line,
+        "",
+        body_extra,
+    ]
+    if price_block:
+        sections.extend(["", price_block])
+    sections.extend([
+        "",
+        closing,
+        "",
+        f"📞 تماس: {phone}",
+        f"📷 اینستاگرام: {instagram}",
+        f"🔗 کانال: {channel_link}",
+    ])
 
-{parts_line}
-
-{body_extra}
-
-{closing}
-
-📞 تماس: {phone}
-📷 اینستاگرام: {instagram}
-🔗 کانال: {channel_link}"""
-    return text
+    # حذف خطوط خالی تکراری پشت‌سرهم
+    lines = []
+    for s in sections:
+        if s == "" and lines and lines[-1] == "":
+            continue
+        lines.append(s)
+    return "\n".join(lines).strip()
 
 
 def get_random_promo(phone: str, channel: str, instagram: str, channel_link: str) -> str:
@@ -97,6 +117,7 @@ def get_random_promo(phone: str, channel: str, instagram: str, channel_link: str
 def get_caption_for_photo(phone: str, instagram: str, channel_link: str) -> str:
     return f"""🛏️ سرویس خواب سوین چوب
 کیفیت کارخانه‌ای | فروش عمده و خرده
+⚠️ قیمت‌ها متغیر است
 
 📞 {phone}
 📷 {instagram}
