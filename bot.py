@@ -35,15 +35,21 @@ PRODUCT_INDEX_FILE = Path("product_index.json")
 CATALOG_FILE = Path("products/catalog.json")
 
 
-def api_call(method: str, data: dict = None) -> dict:
+def api_call(method: str, data: dict = None, retries: int = 3) -> dict:
     url = f"{BASE_URL}/{method}"
-    try:
-        resp = requests.post(url, json=data or {}, timeout=30)
-        resp.raise_for_status()
-        return resp.json()
-    except Exception as e:
-        print(f"[ERROR] {method}: {e}")
-        return {}
+    last_err = None
+    for attempt in range(1, retries + 1):
+        try:
+            resp = requests.post(url, json=data or {}, timeout=45)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            last_err = e
+            print(f"[ERROR] {method} تلاش {attempt}/{retries}: {e}")
+            if attempt < retries:
+                time.sleep(5 * attempt)
+    print(f"[ERROR] {method} نهایی ناموفق: {last_err}")
+    return {}
 
 
 def send_message(chat_id: str, text: str) -> dict:
@@ -200,7 +206,7 @@ def send_product_post() -> bool:
 def smart_post():
     if period_ended():
         print(f"[SMART] دوره تا {END_DATE} تمام شده → توقف")
-        return
+        return None
 
     slot = current_slot()
     now = datetime.now(TZ)
@@ -208,18 +214,19 @@ def smart_post():
 
     if not slot:
         print("[SMART] خارج از بازه صبح/شب → رد")
-        return
+        return None
 
     if already_sent_today(slot):
         print(f"[SMART] پست {slot} امروز قبلاً رفته → رد")
-        return
+        return None
 
     ok = send_product_post()
     if ok:
         mark_success(slot)
         print("[SMART] ارسال موفق")
-    else:
-        print("[SMART] ارسال ناموفق")
+        return True
+    print("[SMART] ارسال ناموفق")
+    return False
 
 
 def main():
@@ -234,13 +241,17 @@ def main():
     print(f"[INFO] ربات: {me}")
 
     if smart:
-        smart_post()
+        ok = smart_post()
+        if ok is False:
+            sys.exit(1)
         return
 
     if once:
         ok = send_product_post()
         if ok:
             mark_success(current_slot() or "manual")
+        else:
+            sys.exit(1)
         return
 
     smart_post()
