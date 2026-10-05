@@ -45,8 +45,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Send text promo (smart)
-        run: python bot.py --smart
+      - name: Send promo
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python bot.py --once
+          else
+            python bot.py --smart
+          fi
         env:
           PYTHONUNBUFFERED: '1'
 

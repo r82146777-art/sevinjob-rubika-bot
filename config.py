@@ -1,6 +1,6 @@
 # ============================================
 # تنظیمات ربات سوین چوب - سرویس خواب
-# مخزن خصوصی
+# مخزن عمومی
 # ============================================
 
 BOT_TOKEN = "CFAGCB0ENOYVQUMHIWSFMSXJUNEIIMDWBBOURDLOPFBAKFTBMCXYVMIWZXARQJVA"
