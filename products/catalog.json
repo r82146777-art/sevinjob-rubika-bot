@@ -96,5 +96,75 @@
     "tagline": "سرویس خواب مدل اریس",
     "parts": "تخت خواب، پاتختی با آینه قدی گردون، میز آرایش، صندلی آرایش، دراور",
     "price": "۷۵ میلیون تومان"
+  },
+  {
+    "id": "makhmali",
+    "name": "مخملی",
+    "image": "products/makhmali.jpg",
+    "tagline": "سرویس خواب مدل مخملی",
+    "parts": "تخت خواب، پاتختی، میز آرایش، صندلی آرایش"
+  },
+  {
+    "id": "pakati",
+    "name": "پک کامل مخمل",
+    "image": "products/pakati.jpg",
+    "tagline": "سرویس خواب پک کامل مخمل",
+    "parts": "تخت خواب، دراور، پاتختی، میز آرایش، صندلی، قاب آینه"
+  },
+  {
+    "id": "sadafi",
+    "name": "صدفی",
+    "image": "products/sadafi.jpg",
+    "tagline": "سرویس خواب مدل صدفی",
+    "parts": "تخت خواب، پاتختی، میز آرایش، صندلی آرایش"
+  },
+  {
+    "id": "classic_wood",
+    "name": "چوبی کلاسیک",
+    "image": "products/classic_wood.jpg",
+    "tagline": "سرویس خواب چوبی کلاسیک",
+    "parts": "تخت خواب، ۲ پاتختی، دراور، میز آرایش، صندلی آرایش"
+  },
+  {
+    "id": "kanal_cream",
+    "name": "کانال کرم",
+    "image": "products/kanal_cream.jpg",
+    "tagline": "سرویس خواب مدل کانال کرم",
+    "parts": "تخت خواب، پاتختی، میز آرایش، صندلی آرایش"
+  },
+  {
+    "id": "dorang",
+    "name": "دو رنگ چوب و پارچه",
+    "image": "products/dorang.jpg",
+    "tagline": "سرویس خواب دو رنگ",
+    "parts": "تخت خواب، پاتختی، میز آرایش، صندلی آرایش"
+  },
+  {
+    "id": "talayi",
+    "name": "طلایی لوکس",
+    "image": "products/talayi.jpg",
+    "tagline": "سرویس خواب طلایی لوکس",
+    "parts": "تخت خواب، پاتختی، دراور، میز آرایش، صندلی، نیمکت پای تخت"
+  },
+  {
+    "id": "sorme",
+    "name": "سرمه‌ای",
+    "image": "products/sorme.jpg",
+    "tagline": "سرویس خواب مدل سرمه‌ای",
+    "parts": "تخت خواب، پاتختی، میز آرایش، صندلی آرایش"
+  },
+  {
+    "id": "modern_cream",
+    "name": "مدرن کرم",
+    "image": "products/modern_cream.jpg",
+    "tagline": "سرویس خواب مدرن کرم",
+    "parts": "تخت خواب، پاتختی، میز آرایش، صندلی آرایش"
+  },
+  {
+    "id": "beige_soft",
+    "name": "بژ نرم",
+    "image": "products/beige_soft.jpg",
+    "tagline": "سرویس خواب مدل بژ نرم",
+    "parts": "تخت خواب، میز آرایش"
   }
 ]
