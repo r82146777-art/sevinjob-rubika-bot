@@ -57,10 +57,12 @@ jobs:
 
       - name: Commit state
         run: |
-          if [ -f last_success.txt ]; then
-            git config user.name "SevinChoob Bot"
-            git config user.email "bot@sevinchoob.local"
-            git add last_success.txt
-            git diff --staged --quiet || git commit -m "update last_success [skip ci]"
+          git config user.name "SevinChoob Bot"
+          git config user.email "bot@sevinchoob.local"
+          CHANGED=0
+          if [ -f last_success.txt ]; then git add last_success.txt; CHANGED=1; fi
+          if [ -f product_index.json ]; then git add product_index.json; CHANGED=1; fi
+          if [ "$CHANGED" = "1" ]; then
+            git diff --staged --quiet || git commit -m "update rotation state [skip ci]"
             git push || true
           fi

@@ -104,16 +104,33 @@ def load_catalog() -> list:
     return data if isinstance(data, list) else []
 
 
-def next_product() -> dict | None:
-    """چرخش روی مدل‌ها تا تکراری سریع نشود"""
+def next_product(slot: str | None = None) -> dict | None:
+    """چرخش پایدار مدل‌ها بر اساس روز+اسلات + ذخیره ایندکس"""
     catalog = load_catalog()
     if not catalog:
         return None
-    state = load_json(PRODUCT_INDEX_FILE, {"index": 0})
-    idx = int(state.get("index", 0)) % len(catalog)
+    now = datetime.now(TZ)
+    # پایه: روز تقویمی + صبح/شب تا هر پست مدل متفاوتی بگیرد
+    day_num = int(now.strftime("%Y%m%d"))
+    slot_boost = 0 if (slot or "morning") == "morning" else 1
+    state = load_json(PRODUCT_INDEX_FILE, {"index": 0, "history": []})
+    # اولویت با ایندکس ذخیره‌شده؛ اگر نبود از روز محاسبه کن
+    if "index" in state and isinstance(state.get("index"), int) and state.get("index", 0) > 0:
+        idx = int(state["index"]) % len(catalog)
+    else:
+        idx = (day_num * 2 + slot_boost) % len(catalog)
+    # جلوگیری از تکرار پشت‌سرهم همان مدل
+    history = state.get("history") or []
+    tries = 0
+    while tries < len(catalog) and catalog[idx].get("id") in history[-1:]:
+        idx = (idx + 1) % len(catalog)
+        tries += 1
     product = catalog[idx]
     state["index"] = idx + 1
+    history.append(product.get("id"))
+    state["history"] = history[-20:]
     save_json(PRODUCT_INDEX_FILE, state)
+    print(f"[INFO] مدل انتخابی: {product.get('name')} (index={idx})")
     return product
 
 
@@ -159,8 +176,8 @@ def is_ok(result: dict) -> bool:
     return isinstance(result, dict) and result.get("status") == "OK"
 
 
-def send_product_post() -> bool:
-    product = next_product()
+def send_product_post(slot: str | None = None) -> bool:
+    product = next_product(slot)
     if product:
         text = build_product_promo(
             product=product,
@@ -220,7 +237,7 @@ def smart_post():
         print(f"[SMART] پست {slot} امروز قبلاً رفته → رد")
         return None
 
-    ok = send_product_post()
+    ok = send_product_post(slot)
     if ok:
         mark_success(slot)
         print("[SMART] ارسال موفق")
@@ -247,7 +264,7 @@ def main():
         return
 
     if once:
-        ok = send_product_post()
+        ok = send_product_post(current_slot() or "manual")
         if ok:
             mark_success(current_slot() or "manual")
         else:
