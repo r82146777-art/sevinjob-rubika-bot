@@ -1,7 +1,6 @@
 {
-  "index": 28,
+  "index": 29,
   "history": [
-    "golnar",
     "kakhsar",
     "parastoo",
     "delvin",
@@ -20,6 +19,7 @@
     "wood_panel",
     "beige_fur",
     "grey_minimal",
-    "cream_gold"
+    "cream_gold",
+    "cream_full"
   ]
 }
