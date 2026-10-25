@@ -1,7 +1,6 @@
 {
-  "index": 27,
+  "index": 28,
   "history": [
-    "venice",
     "golnar",
     "kakhsar",
     "parastoo",
@@ -20,6 +19,7 @@
     "luxury_curve",
     "wood_panel",
     "beige_fur",
-    "grey_minimal"
+    "grey_minimal",
+    "cream_gold"
   ]
 }
