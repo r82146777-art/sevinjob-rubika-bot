@@ -1,7 +1,6 @@
 {
-  "index": 30,
+  "index": 31,
   "history": [
-    "parastoo",
     "delvin",
     "aris",
     "makhmali",
@@ -20,6 +19,7 @@
     "grey_minimal",
     "cream_gold",
     "cream_full",
-    "workshop_wood"
+    "workshop_wood",
+    "wood_blue"
   ]
 }
