@@ -1,7 +1,6 @@
 {
-  "index": 4,
+  "index": 5,
   "history": [
-    "grey_minimal",
     "cream_gold",
     "cream_full",
     "workshop_wood",
@@ -20,6 +19,7 @@
     "darbar",
     "nojavan",
     "teddy",
-    "delnavaz"
+    "delnavaz",
+    "west"
   ]
 }
