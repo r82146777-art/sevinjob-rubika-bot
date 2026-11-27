@@ -1,7 +1,6 @@
 {
-  "index": 8,
+  "index": 9,
   "history": [
-    "wood_blue",
     "light_wood",
     "showroom_wood",
     "shabnam",
@@ -20,6 +19,7 @@
     "west",
     "simin",
     "abrisham",
-    "venice"
+    "venice",
+    "golnar"
   ]
 }
